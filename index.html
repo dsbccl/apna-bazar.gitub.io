@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apna Bazar — Your Local Online Market</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color: #fff; padding: 34px 20px; text-align: center;
+  }
+  .hero h1 { color: #fff; font-size: 28px; }
+  .hero .orange { color: var(--orange); }
+  .hero p { color: #C7D3E0; margin-top: 8px; font-size: 14px; }
+
+  .categories { display: flex; gap: 8px; overflow-x: auto; padding: 16px 0 4px; }
+  .cat-chip {
+    flex: none; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line);
+    background: #fff; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--ink);
+  }
+  .cat-chip.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 10px; }
+  .product {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .product img { width: 100%; height: 120px; object-fit: cover; background: var(--cream); }
+  .product-body { padding: 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .product-name { font-weight: 700; font-size: 14px; }
+  .product-shop { font-size: 11px; color: var(--muted); }
+  .product-price { font-family: 'Baloo 2', sans-serif; font-weight: 700; color: var(--navy); font-size: 16px; margin-top: 2px; }
+  .product-unit { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button {
+    width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid var(--line);
+    background: #fff; font-weight: 700; cursor: pointer; font-size: 15px; color: var(--navy);
+  }
+  .stepper span { min-width: 16px; text-align: center; font-weight: 700; }
+  .add-btn { background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+  .cart-fab {
+    position: fixed; bottom: 20px; right: 20px; background: var(--orange); color: #fff;
+    border: none; border-radius: 999px; padding: 14px 20px; font-weight: 700; font-size: 14px;
+    box-shadow: 0 6px 18px rgba(224,122,44,0.4); cursor: pointer; display: none; align-items: center; gap: 8px; z-index: 60;
+  }
+  .cart-fab.show { display: inline-flex; }
+
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(18,40,63,0.45); display: none; z-index: 100;
+  }
+  .drawer-backdrop.show { display: block; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 100%; max-width: 400px;
+    background: #fff; z-index: 101; transform: translateX(100%); transition: transform 0.25s ease;
+    display: flex; flex-direction: column;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer-header { padding: 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+  .drawer-footer { padding: 18px; border-top: 1px solid var(--line); }
+  .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .cart-line-name { font-weight: 600; font-size: 14px; }
+  .cart-line-meta { font-size: 12px; color: var(--muted); }
+  .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); }
+  .total-row { display: flex; justify-content: space-between; font-family: 'Baloo 2'; font-weight: 700; font-size: 18px; color: var(--navy); margin-bottom: 14px; }
+
+  .deliver-to { background: var(--cream); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px; }
+  .deliver-to strong { display: block; font-size: 14px; color: var(--navy); }
+  .deliver-to a { color: var(--orange-dark); font-weight: 600; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">🛒 Apna <span class="orange">Bazar</span></div>
+  <div class="topbar-actions" id="authArea">
+    <button class="pill" onclick="openAuthModal()">Sign in</button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Your Local <span class="orange">Online Market</span></h1>
+  <p>Shop. Connect. Grow. — fresh groceries from shopkeepers near you.</p>
+</section>
+
+<div class="wrap">
+  <div class="search-bar">
+    <span class="icon">🔍</span>
+    <input id="searchInput" placeholder="Search for atta, milk, vegetables…" oninput="renderProducts()">
+  </div>
+  <div class="categories" id="categories"></div>
+  <div id="productGrid" class="grid"></div>
+  <div id="emptyState" class="empty-state" style="display:none;">
+    <h3>No products found</h3>
+    <p>Try a different search term or category.</p>
+  </div>
+</div>
+
+<button class="cart-fab" id="cartFab" onclick="openDrawer()">🧺 <span id="cartCount">0</span> items · <span id="cartTotal">₹0</span></button>
+
+<!-- Cart drawer -->
+<div class="drawer-backdrop" id="backdrop" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h3>Your Cart</h3>
+    <button class="close-btn" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer">
+    <div class="total-row"><span>Total</span><span id="drawerTotal">₹0</span></div>
+    <div id="deliverToBox"></div>
+    <button class="btn btn-primary btn-block" onclick="handleCheckout()">Place Order</button>
+  </div>
+</div>
+
+<!-- Generic modal (sign-in / profile) -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalContent"></div>
+</div>
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+let allProducts = [];
+let cart = {};
+let activeCategory = 'All';
+let currentUser = null;   // firebase auth user
+let profile = null;       // Firestore customers/{uid} doc
+
+/* ---------------- Distance & Delivery Charge Helpers ---------------- */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function computeDeliveryCharge(subtotal, distanceKm) {
+  const BASE_FEE = 10;
+  const MAX_FEE = 50;
+
+  if (distanceKm === null || distanceKm === undefined) {
+    return BASE_FEE; 
+  }
+
+  let fee = BASE_FEE;
+  if (distanceKm > 1) {
+    fee += Math.ceil(distanceKm - 1) * 5;
+  }
+
+  return Math.min(fee, MAX_FEE);
+}
+
+/* ---------------- Toast (replaces alert) ---------------- */
+function showToast(message, type = '') {
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = message;
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+/* ---------------- Generic modal ---------------- */
+function closeModal() { document.getElementById('modalBackdrop').classList.remove('show'); }
+function openModalWith(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBackdrop') closeModal();
+});
+
+const googleIcon = `<svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.5-2.1 14.2-5.6l-6.6-5.4C29.6 34.9 27 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.4C41.5 35.6 44 30.2 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>`;
+
+function openAuthModal() {
+  openModalWith(`
+    <h3>Sign in to Apna Bazar</h3>
+    <p class="muted">So you never have to type your details again.</p>
+    <button class="google-btn" onclick="signInWithGoogle()">${googleIcon} Continue with Google</button>
+  `);
+}
+
+async function signInWithGoogle() {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch (e) {
+    console.error(e);
+    showToast('Sign-in failed. Please try again.', 'error');
+  }
+}
+
+function openProfileSetupModal(user) {
+  const isEdit = !!profile;
+  const currentPic = (profile && profile.photoURL) || user.photoURL || '';
+  selectedProfileFile = null;
+  capturedLat = (profile && profile.lat) || null;
+  capturedLng = (profile && profile.lng) || null;
+  openModalWith(`
+    <h3>${isEdit ? 'Your details' : 'Just one time'}</h3>
+    <p class="muted">${isEdit ? 'Update your delivery details below.' : "We'll save this so checkout is a single tap from now on."}</p>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+      <img id="picPreview" src="${currentPic || 'https://placehold.co/56x56/E07A2C/fff?text=' + ((profile && profile.name[0]) || user.displayName?.[0] || 'U')}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;">
+      <div style="flex:1;">
+        <label style="margin-bottom:4px;">Profile picture</label>
+        <input type="file" id="profPicFile" accept="image/*" onchange="previewProfilePic(event)" style="margin-bottom:0; padding:8px; font-size:12px;">
+      </div>
+    </div>
+    <label>Full name</label>
+    <input id="profName" value="${(profile && profile.name) || user.displayName || ''}">
+    <label>Phone number</label>
+    <input id="profPhone" placeholder="10-digit mobile number" maxlength="10" value="${(profile && profile.phone) || ''}">
+    <label>Delivery address</label>
+    <textarea id="profAddress" rows="2" placeholder="House no, street, landmark">${(profile && profile.address) || ''}</textarea>
+    <label>Pincode / area</label>
+    <input id="profArea" placeholder="e.g. 302017 or Malviya Nagar" value="${(profile && profile.area) || ''}">
+    <button type="button" class="btn btn-outline btn-block" id="locBtn" onclick="captureProfileLocation()" style="margin-bottom:14px;">📍 ${(profile && profile.lat) ? 'Location saved — tap to update' : 'Share my location (helps set delivery charges)'}</button>
+    <button class="btn btn-primary btn-block" id="saveProfileBtn" onclick="saveProfile()">Save${isEdit ? '' : ' & Continue'}</button>
+    ${isEdit ? `<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="signOut()">Sign out</button>` : ''}
+  `);
+}
+
+let selectedProfileFile = null;
+let capturedLat = (profile && profile.lat) || null;
+let capturedLng = (profile && profile.lng) || null;
+
+function captureProfileLocation() {
+  if (!navigator.geolocation) { showToast('Location isn\'t available on this device.', 'error'); return; }
+  const btn = document.getElementById('locBtn');
+  btn.disabled = true;
+  btn.textContent = '📍 Getting your location…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      capturedLat = pos.coords.latitude;
+      capturedLng = pos.coords.longitude;
+      btn.disabled = false;
+      btn.textContent = '📍 Location saved — tap to update';
+      showToast('Location saved.', 'success');
+      renderDrawer();
+    },
+    () => {
+      btn.disabled = false;
+      btn.textContent = '📍 Share my location (helps set delivery charges)';
+      showToast('Could not get your location. You can still place orders normally.', 'error');
+    },
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+}
+
+function previewProfilePic(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    showToast('Please choose a smaller image (under 8MB).', 'error');
+    event.target.value = '';
+    return;
+  }
+  selectedProfileFile = file;
+  document.getElementById('picPreview').src = URL.createObjectURL(file);
+}
+
+function compressImageToDataURL(file, size = 200, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function saveProfile() {
+  const name = document.getElementById('profName').value.trim();
+  const phone = document.getElementById('profPhone').value.trim();
+  const address = document.getElementById('profAddress').value.trim();
+  const area = document.getElementById('profArea').value.trim();
+  if (!name || !/^\d{10}$/.test(phone) || !address || !area) {
+    showToast('Please fill in every field with a valid 10-digit phone number.', 'error');
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveProfileBtn');
+  saveBtn.disabled = true;
+
+  let photoURL = (profile && profile.photoURL) || currentUser.photoURL || '';
+  try {
+    if (selectedProfileFile) {
+      saveBtn.textContent = 'Processing photo…';
+      photoURL = await compressImageToDataURL(selectedProfileFile);
+    }
+
+    const data = {
+      name, phone, address, area, photoURL,
+      lat: capturedLat, lng: capturedLng,
+      email: currentUser.email || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('customers').doc(currentUser.uid).set(data);
+    profile = data;
+    selectedProfileFile = null;
+    closeModal();
+    showToast(`Welcome, ${name.split(' ')[0]}!`, 'success');
+    renderAuthArea();
+    renderProducts();
+    renderDrawer();
+  } catch (e) {
+    console.error(e);
+    showToast('Could not save your profile. Please try again.', 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
+}
+
+/* ---------------- Auth state ---------------- */
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  
+  if (!user) { 
+    profile = null; 
+    renderAuthArea(); 
+    renderProducts(); 
+    return; 
+  }
+
+  // 1. Check if user is a registered customer
+  const doc = await db.collection('customers').doc(user.uid).get();
+  
+  if (doc.exists) {
+    profile = doc.data();
+    closeModal();
+    renderAuthArea();
+    renderProducts();
+    return;
+  }
+
+  // 2. If not a customer, check if they are logged in as a shopkeeper
+  const shopDoc = await db.collection('shops').doc(user.uid).get();
+  
+  if (shopDoc.exists) {
+    // User is a shopkeeper trying to view index.html — sign them out
+    await auth.signOut();
+    showToast('This account is registered as a shopkeeper. Please sign in with a customer account.', 'error');
+    return;
+  }
+
+  // 3. Brand new user (neither shopkeeper nor existing customer) — open profile setup modal
+  openProfileSetupModal(user);
+});
+
+function renderAuthArea() {
+  const area = document.getElementById('authArea');
+  if (!currentUser || !profile) {
+    area.innerHTML = `<button class="pill" onclick="openAuthModal()">Sign in</button>`;
+    return;
+  }
+  area.innerHTML = `
+    <button class="pill" onclick="openMyOrders()">📦 My Orders</button>
+    <button class="profile-chip" onclick="openProfileSetupModal(currentUser)">
+      <img src="${profile.photoURL || currentUser.photoURL || 'https://placehold.co/40x40/E07A2C/fff?text=' + (profile.name[0] || 'U')}">
+      <span>${profile.name.split(' ')[0]}</span>
+    </button>`;
+}
+
+async function signOut() {
+  await auth.signOut();
+  closeModal();
+  showToast('Signed out.');
+}
+
+/* ---------------- My Orders ---------------- */
+const ORDER_STEPS = [
+  { status: 'pending', label: 'Placed', icon: '📝' },
+  { status: 'packed', label: 'Packed', icon: '📦' },
+  { status: 'out_for_delivery', label: 'On the way', icon: '🛵' },
+  { status: 'delivered', label: 'Delivered', icon: '🏠' }
+];
+
+async function openMyOrders() {
+  openModalWith(`<h3>My Orders</h3><p class="muted">Loading…</p>`);
+  try {
+    const snap = await db.collection('orders')
+      .where('customerUid', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .get();
+
+    if (snap.empty) {
+      openModalWith(`
+        <h3>My Orders</h3>
+        <div class="empty-state" style="padding:30px 10px;">
+          <h3>No orders yet</h3>
+          <p>Your orders will show up here once you place one.</p>
+        </div>`);
+      return;
+    }
+
+    const cards = snap.docs.map(d => renderOrderTrackCard({ id: d.id, ...d.data() })).join('');
+    openModalWith(`<h3 style="margin-bottom:14px;">My Orders</h3>${cards}`);
+  } catch (e) {
+    console.error(e);
+    openModalWith(`<h3>My Orders</h3><p class="muted">Could not load your orders right now.</p>`);
+  }
+}
+
+function renderOrderTrackCard(o) {
+  const currentIndex = ORDER_STEPS.findIndex(s => s.status === o.status);
+  const itemsText = o.items.map(it => `${it.qty} × ${it.name}`).join(', ');
+  const stepsHtml = ORDER_STEPS.map((s, i) => {
+    const cls = i < currentIndex || o.status === 'delivered' ? 'done' : i === currentIndex ? 'active' : '';
+    return `
+      <div class="route-step ${cls}">
+        <div class="route-dot">${i <= currentIndex ? '✓' : s.icon}</div>
+        <div class="route-step-label">${s.label}</div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="order-card" style="margin-bottom:14px;">
+      <div class="order-top">
+        <div>
+          <strong>${formatRupees(o.total)}</strong>
+          <div class="muted">${timeAgo(o.createdAt)}</div>
+        </div>
+      </div>
+      <div class="order-items" style="margin-bottom:12px;">${itemsText}</div>
+      <div class="route-steps">${stepsHtml}</div>
+      ${o.status === 'out_for_delivery' && o.deliveryPersonName
+        ? `<p class="muted" style="margin-top:6px;">🛵 ${o.deliveryPersonName} is on the way — <a class="call-link" style="color:var(--green-dark);font-weight:600;" href="tel:${o.deliveryPersonPhone}">call</a>${o.deliveryLat ? ` · <a class="call-link" style="color:var(--green-dark);font-weight:600;" href="https://www.google.com/maps?q=${o.deliveryLat},${o.deliveryLng}" target="_blank" rel="noopener">view on map</a>` : ''}</p>`
+        : ''}
+    </div>`;
+}
+
+/* ---------------- Products ---------------- */
+async function loadProducts() {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '<p class="muted">Loading products…</p>';
+  try {
+    const snap = await db.collection('products').orderBy('createdAt', 'desc').get();
+    allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    buildCategories();
+    renderProducts();
+  } catch (e) {
+    grid.innerHTML = '<p class="muted">Could not load products. Check your Firebase setup in js/firebase-config.js.</p>';
+    console.error(e);
+  }
+}
+
+function buildCategories() {
+  const cats = ['All', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
+  const bar = document.getElementById('categories');
+  bar.innerHTML = cats.map(c =>
+    `<button class="cat-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${c.replace(/'/g,"\\'")}')">${c}</button>`
+  ).join('');
+}
+
+function setCategory(c) { activeCategory = c; buildCategories(); renderProducts(); }
+
+function renderProducts() {
+  const grid = document.getElementById('productGrid');
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  let list = activeCategory === 'All' ? allProducts : allProducts.filter(p => p.category === activeCategory);
+  if (query) list = list.filter(p => p.name.toLowerCase().includes(query));
+
+  if (profile && profile.area) {
+    const area = profile.area.toLowerCase();
+    list = [...list].sort((a, b) => {
+      const aLocal = (a.area || '').toLowerCase().includes(area) ? 0 : 1;
+      const bLocal = (b.area || '').toLowerCase().includes(area) ? 0 : 1;
+      return aLocal - bLocal;
+    });
+  }
+
+  document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
+  grid.innerHTML = list.map(p => {
+    const qty = cart[p.id] ? cart[p.id].qty : 0;
+    const stock = p.stock || 0;
+    const outOfStock = stock <= 0;
+    const atLimit = qty >= stock;
+    let controlsHtml;
+    if (outOfStock) {
+      controlsHtml = `<span class="badge badge-pending" style="background:#FBEAE7; color:var(--danger);">Out of stock</span>`;
+    } else if (qty === 0) {
+      controlsHtml = `<button class="add-btn" onclick="addToCart('${p.id}')">Add</button>`;
+    } else {
+      controlsHtml = `
+        <div class="stepper">
+          <button onclick="changeQty('${p.id}', -1)">−</button>
+          <span>${qty}</span>
+          <button onclick="changeQty('${p.id}', 1)" ${atLimit ? 'disabled' : ''}>+</button>
+        </div>`;
+    }
+    return `
+    <div class="product">
+      <img src="${p.imageUrl || 'https://placehold.co/300x200/FBF7F0/71808F?text=' + encodeURIComponent(p.name)}" alt="${p.name}">
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-shop">from ${p.shopName || 'local shop'}</div>
+        <div class="product-price">${formatRupees(p.price)} <span class="product-unit">/ ${p.unit}</span></div>
+        <div class="qty-row" id="qtyRow-${p.id}">
+          ${controlsHtml}
+          <span class="muted">${!outOfStock ? stock + ' left' : ''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id) {
+  const product = allProducts.find(p => p.id === id);
+  if ((product.stock || 0) <= 0) { showToast('Sorry, that item is out of stock.', 'error'); return; }
+  cart[id] = { product, qty: 1 };
+  renderProducts();
+  updateCartFab();
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  const { product } = cart[id];
+  if (delta > 0 && cart[id].qty >= (product.stock || 0)) {
+    showToast(`Only ${product.stock} ${product.unit || 'in stock'} available.`, 'error');
+    return;
+  }
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
+  renderProducts();
+  updateCartFab();
+  renderDrawer();
+}
+
+function cartTotals() {
+  let count = 0, total = 0;
+  Object.values(cart).forEach(({ product, qty }) => { count += qty; total += qty * product.price; });
+  return { count, total };
+}
+
+function updateCartFab() {
+  const { count, total } = cartTotals();
+  document.getElementById('cartFab').classList.toggle('show', count > 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = formatRupees(total);
+}
+
+function openDrawer() { renderDrawer(); document.getElementById('drawer').classList.add('show'); document.getElementById('backdrop').classList.add('show'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('show'); document.getElementById('backdrop').classList.remove('show'); }
+
+async function renderDrawer() {
+  const body = document.getElementById('drawerBody');
+  const items = Object.entries(cart);
+  if (!items.length) { 
+    body.innerHTML = '<p class="muted">Your cart is empty.</p>'; 
+    document.getElementById('drawerTotal').textContent = formatRupees(0);
+    return;
+  }
+
+  body.innerHTML = items.map(([id, { product, qty }]) => `
+    <div class="cart-line">
+      <div>
+        <div class="cart-line-name">${product.name}</div>
+        <div class="cart-line-meta">${qty} × ${formatRupees(product.price)}</div>
+      </div>
+      <div class="stepper">
+        <button onclick="changeQty('${id}', -1)">−</button>
+        <span>${qty}</span>
+        <button onclick="changeQty('${id}', 1)">+</button>
+      </div>
+    </div>`).join('');
+
+  const { total: itemsTotal } = cartTotals();
+  
+  let deliveryFee = 10;
+  const firstItem = Object.values(cart)[0]?.product;
+  
+  if (firstItem && firstItem.shopId && profile && profile.lat && profile.lng) {
+    try {
+      const shopSnap = await db.collection('shops').doc(firstItem.shopId).get();
+      if (shopSnap.exists) {
+        const shopData = shopSnap.data();
+        const dist = haversineKm(shopData.lat, shopData.lng, profile.lat, profile.lng);
+        deliveryFee = computeDeliveryCharge(itemsTotal, dist);
+      }
+    } catch (e) {
+      console.error('Error fetching shop location:', e);
+    }
+  }
+
+  const grandTotal = itemsTotal + deliveryFee;
+
+  const box = document.getElementById('deliverToBox');
+  box.innerHTML = `
+    <div style="border-top: 1px dashed var(--line); padding-top: 10px; margin-bottom: 10px; font-size: 13px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span class="muted">Items Total</span>
+        <span>${formatRupees(itemsTotal)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span class="muted">Delivery Fee</span>
+        <span>${formatRupees(deliveryFee)}</span>
+      </div>
+    </div>
+    ${profile
+      ? `<div class="deliver-to"><strong>Deliver to ${profile.name}</strong>${profile.address}, ${profile.area} · ${profile.phone} <br><a href="#" onclick="event.preventDefault(); openProfileSetupModal(currentUser)">Edit details</a></div>`
+      : `<p class="muted" style="margin-bottom:10px;">Sign in at checkout to confirm your delivery address.</p>`
+    }
+  `;
+
+  document.getElementById('drawerTotal').textContent = formatRupees(grandTotal);
+}
+
+async function handleCheckout() {
+  const { count, total: itemsTotal } = cartTotals();
+  if (!count) { showToast('Your cart is empty.', 'error'); return; }
+
+  if (!currentUser || !profile) {
+    openAuthModal();
+    showToast('Sign in to place your order.');
+    return;
+  }
+
+  const items = Object.values(cart).map(({ product, qty }) => ({
+    productId: product.id, name: product.name, price: product.price, qty,
+    shopId: product.shopId || null, shopName: product.shopName || ''
+  }));
+
+  const primaryShopId = items[0] ? items[0].shopId : null;
+  let distanceKm = null;
+  if (primaryShopId && profile.lat && profile.lng) {
+    const shopSnap = await db.collection('shops').doc(primaryShopId).get();
+    if (shopSnap.exists) {
+      const shopData = shopSnap.data();
+      distanceKm = haversineKm(shopData.lat, shopData.lng, profile.lat, profile.lng);
+    }
+  }
+  const deliveryCharge = computeDeliveryCharge(itemsTotal, distanceKm);
+  const grandTotal = itemsTotal + deliveryCharge;
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const productRefs = items.map(it => db.collection('products').doc(it.productId));
+      const productSnaps = await Promise.all(productRefs.map(ref => tx.get(ref)));
+
+      for (let i = 0; i < items.length; i++) {
+        const snap = productSnaps[i];
+        if (!snap.exists) throw new Error(`${items[i].name} is no longer available.`);
+        const available = snap.data().stock || 0;
+        if (available < items[i].qty) {
+          throw new Error(available === 0
+            ? `${items[i].name} just went out of stock.`
+            : `Only ${available} ${snap.data().unit || ''} of ${items[i].name} left — please update your cart.`);
+        }
+      }
+
+      productSnaps.forEach((snap, i) => {
+        tx.update(productRefs[i], { stock: snap.data().stock - items[i].qty });
+      });
+
+      const orderRef = db.collection('orders').doc();
+      tx.set(orderRef, {
+        customerUid: currentUser.uid,
+        customerName: profile.name, customerPhone: profile.phone,
+        address: profile.address, area: profile.area,
+        customerLat: profile.lat || null, customerLng: profile.lng || null,
+        items, 
+        total: grandTotal,
+        status: 'pending',
+        deliveryPersonName: null, deliveryPersonPhone: null,
+        deliveryCharge, deliveryDistanceKm: distanceKm,
+        settled: false, pendingSettlement: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    showToast('Order placed! The shopkeeper will pack it shortly.', 'success');
+    cart = {};
+    updateCartFab(); closeDrawer();
+    await loadProducts();
+  } catch (e) {
+    console.error(e);
+    showToast(e.message || 'Could not place order. Please try again.', 'error');
+    await loadProducts();
+  }
+}
+
+loadProducts();
+</script>
+</body>
+</html>

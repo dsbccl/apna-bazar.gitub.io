@@ -1,0 +1,381 @@
+/* ============================================
+   APNA BAZAR — shared design system
+   Palette: navy (trust), orange (action/cart), green (fresh/local)
+   Display face: Baloo 2 (rounded, warm, market-stall energy)
+   Body face: Inter
+   Signature: dotted "delivery route" divider — a market is a network
+   of little journeys from shop to home, so the dotted line recurs
+   as a structural device (route trackers, section breaks).
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --navy: #1B3A63;
+  --navy-dark: #12283F;
+  --orange: #E07A2C;
+  --orange-dark: #C4621A;
+  --green: #5B8C3E;
+  --green-dark: #46702E;
+  --cream: #FBF7F0;
+  --card: #FFFFFF;
+  --ink: #23303F;
+  --muted: #71808F;
+  --line: #E7DFD2;
+  --danger: #C0392B;
+  --radius: 14px;
+  --shadow: 0 4px 16px rgba(27, 58, 99, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .display {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+a { color: inherit; }
+
+/* ---------- Header ---------- */
+.topbar {
+  background: var(--navy);
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+}
+
+.brand .orange { color: var(--orange); }
+.brand-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #B9C6D6;
+  display: block;
+  margin-top: -2px;
+}
+
+.topbar-actions { display: flex; align-items: center; gap: 14px; }
+
+.pill {
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+.pill:hover { background: rgba(255,255,255,0.2); }
+
+/* ---------- Dotted route divider (signature element) ---------- */
+.route-divider {
+  height: 2px;
+  margin: 28px 0;
+  background-image: radial-gradient(circle, var(--orange) 1.5px, transparent 1.5px);
+  background-size: 10px 2px;
+  background-repeat: repeat-x;
+  opacity: 0.55;
+}
+
+.route-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0;
+  position: relative;
+}
+.route-steps::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background-image: radial-gradient(circle, var(--line) 1.5px, transparent 1.5px);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  z-index: 0;
+}
+.route-step { position: relative; z-index: 1; text-align: center; flex: 1; }
+.route-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--line);
+  margin: 0 auto 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--muted);
+}
+.route-step.done .route-dot { background: var(--green); border-color: var(--green); color: #fff; }
+.route-step.active .route-dot { background: var(--orange); border-color: var(--orange); color: #fff; }
+.route-step-label { font-size: 11px; font-weight: 600; color: var(--muted); }
+.route-step.done .route-step-label, .route-step.active .route-step-label { color: var(--ink); }
+
+/* ---------- Layout ---------- */
+.wrap { max-width: 1080px; margin: 0 auto; padding: 20px; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--orange); color: #fff; }
+.btn-primary:hover { background: var(--orange-dark); }
+.btn-secondary { background: var(--navy); color: #fff; }
+.btn-secondary:hover { background: var(--navy-dark); }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--navy); }
+.btn-danger { background: #FBEAE7; color: var(--danger); }
+.btn-danger:hover { background: #F6D8D2; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Forms ---------- */
+label { font-size: 13px; font-weight: 600; color: var(--navy); display: block; margin-bottom: 5px; }
+input, select, textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  background: #fff;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--orange);
+  outline-offset: 1px;
+  border-color: var(--orange);
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.badge-pending { background: #FDF0DE; color: var(--orange-dark); }
+.badge-packed { background: #E8EEF6; color: var(--navy); }
+.badge-out { background: #EAF2E2; color: var(--green-dark); }
+.badge-delivered { background: #E4F5E9; color: var(--green-dark); }
+
+/* ---------- Utility ---------- */
+.muted { color: var(--muted); font-size: 13px; }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+.empty-state h3 { color: var(--ink); margin-bottom: 6px; }
+
+::selection { background: var(--orange); color: #fff; }
+
+/* ============================================
+   RESPONSIVE DESIGN & MEDIA QUERIES
+   ============================================ */
+
+/* 1. Accessibility: Motion reduction for users with preferences set */
+@media (prefers-reduced-motion: reduce) {
+  * { 
+    transition: none !important; 
+    animation: none !important; 
+  }
+}
+
+/* 2. Small Mobile Adjustments (under 640px) */
+@media (max-width: 380px) {
+  .wrap { 
+    padding: 60px; 
+  }
+  .brand { 
+    font-size: 19px; 
+  }
+}
+
+/* 3. Tablet and Desktop Views (640px and wider) */
+@media (min-width: 380px) {
+  body { 
+    padding-bottom: 0; 
+  }
+  
+  /* Header & Navigation */
+  .topbar { 
+    padding: 14px 20px; 
+  }
+  .brand { 
+    font-size: 22px; 
+  }
+  .pill { 
+    padding: 8px 14px; 
+    font-size: 13px; 
+  }
+  .profile-chip { 
+    padding: 5px 12px 5px 5px; 
+  }
+  .profile-chip img { 
+    width: 32px; 
+    height: 32px; 
+  }
+  .profile-chip span { 
+    font-size: 13px; 
+  }
+
+  /* Hero Section */
+  .hero { 
+    padding: 34px 20px; 
+  }
+  .hero h1 { 
+    font-size: 28px; 
+  }
+  .hero p { 
+    font-size: 14px; 
+  }
+
+  .wrap { 
+    padding: 20px; 
+  }
+
+  /* Product Grid: auto-fills columns based on screen width */
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+  }
+  .product img { 
+    height: 120px; 
+  }
+  .product-body { 
+    padding: 12px; 
+    gap: 4px; 
+  }
+  .product-name { 
+    font-size: 14px; 
+  }
+  .product-price { 
+    font-size: 16px; 
+  }
+
+  /* Floating Cart Button (Desktop placement) */
+  .cart-fab {
+    left: auto; 
+    right: 20px; 
+    bottom: 20px;
+    width: auto; 
+    border-radius: 999px; 
+    padding: 14px 20px;
+  }
+
+  /* Slide-out Cart Drawer (Right side for desktop) */
+  .drawer {
+    top: 0; 
+    right: 0; 
+    left: auto; 
+    bottom: 0;
+    width: 100%; 
+    max-width: 400px; 
+    max-height: 100vh;
+    border-radius: 0; 
+    transform: translateX(100%);
+  }
+  .drawer.show { 
+    transform: translateX(0); 
+  }
+}
+
+
+/* ---------- Toast (replaces browser alert) ---------- */
+.toast-stack {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 300; width: 92%; max-width: 380px;
+}
+.toast {
+  background: var(--navy-dark); color: #fff; padding: 13px 18px; border-radius: 12px;
+  font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(18,40,63,0.3);
+  display: flex; align-items: center; gap: 10px;
+  animation: toast-in 0.2s ease;
+}
+.toast.error { background: var(--danger); }
+.toast.success { background: var(--green-dark); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Modal (replaces browser confirm/prompt) ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(18,40,63,0.5); z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: #fff; border-radius: 16px; padding: 24px; max-width: 380px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(18,40,63,0.25);
+}
+.modal h3 { margin-bottom: 6px; }
+.modal p.muted { margin-bottom: 18px; }
+.modal-close { position: absolute; }
+
+/* ---------- Google sign-in button ---------- */
+.google-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px; border-radius: 10px; border: 1.5px solid var(--line);
+  background: #fff; font-weight: 600; font-size: 14px; color: var(--ink); cursor: pointer;
+}
+.google-btn:hover { background: var(--cream); }
+.google-btn svg { width: 18px; height: 18px; }
+
+/* ---------- Profile chip ---------- */
+.profile-chip {
+  display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12);
+  border-radius: 999px; padding: 5px 12px 5px 5px; cursor: pointer; border: none; color: #fff;
+}
+.profile-chip img { width: 26px; height: 26px; border-radius: 50%; }
+.profile-chip span { font-size: 13px; font-weight: 600; }
+
+/* ---------------- Order cards (used by My Orders, shopkeeper, delivery) ---------------- */
+.order-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.order-items { font-size: 13px; color: var(--muted); }
+.search-bar { position: relative; margin: 18px 0 6px; }
+.search-bar input { padding-left: 40px; margin-bottom: 0; }
+.search-bar .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 15px; }
