@@ -191,16 +191,18 @@ function openAuthModal() {
     <button class="google-btn" onclick="signInWithGoogle()">${googleIcon} Continue with Google</button>
   `);
 }
-
-async function signInWithGoogle() {
+   async function signInWithGoogle() {
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await auth.signInWithPopup(provider);
+    // ✅ Use redirect mode so it opens cleanly without popups
+    await auth.signInWithRedirect(provider);
   } catch (e) {
     console.error(e);
     showToast('Sign-in failed. Please try again.', 'error');
   }
-}
+  }
+  
+
 
 function openProfileSetupModal(user) {
   const isEdit = !!profile;
