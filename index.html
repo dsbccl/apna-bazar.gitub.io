@@ -195,7 +195,7 @@ function openAuthModal() {
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
     // ✅ Use redirect mode so it opens cleanly without popups
-    await auth.signInWithRedirect(provider);
+    await auth.signInWithPopup(provider);
   } catch (e) {
     console.error(e);
     showToast('Sign-in failed. Please try again.', 'error');
